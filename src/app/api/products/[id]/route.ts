@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase/admin';
 import { withAuth } from '@/lib/middleware/apiAuth';
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const docRef = adminDb.collection('products').doc(params.id);
+    const { id } = await params;
+    const docRef = adminDb.collection('products').doc(id);
     const docSnap = await docRef.get();
 
     if (!docSnap.exists) {
@@ -17,13 +18,14 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const authRes = await withAuth(req, ['seller', 'admin']);
   if (authRes.error) return authRes.error;
   const user = authRes.context!;
 
   try {
-    const docRef = adminDb.collection('products').doc(params.id);
+    const docRef = adminDb.collection('products').doc(id);
     const docSnap = await docRef.get();
 
     if (!docSnap.exists) {
@@ -50,13 +52,14 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const authRes = await withAuth(req, ['seller', 'admin']);
   if (authRes.error) return authRes.error;
   const user = authRes.context!;
 
   try {
-    const docRef = adminDb.collection('products').doc(params.id);
+    const docRef = adminDb.collection('products').doc(id);
     const docSnap = await docRef.get();
 
     if (!docSnap.exists) {
