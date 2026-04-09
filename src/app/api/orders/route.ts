@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase/admin';
 import { withAuth } from '@/lib/middleware/apiAuth';
 
+export const dynamic = 'force-dynamic';
+
+
 export async function POST(req: NextRequest) {
   // Only authenticated clients can checkout
   const authRes = await withAuth(req, ['client']);
