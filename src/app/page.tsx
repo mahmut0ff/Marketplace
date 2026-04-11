@@ -38,34 +38,7 @@ export default function Home() {
   return (
     <main style={{ minHeight: '100vh', padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
       
-      {/* Header / Navbar Simulation */}
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--border-color)' }}>
-        <h1 style={{ fontSize: '1.75rem', fontWeight: '800', letterSpacing: '-0.5px' }}>BigShop<span style={{ color: 'var(--accent-color)' }}>AI</span></h1>
-        
-        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-          <input 
-            type="text" 
-            placeholder="Search products..." 
-            style={{ 
-              padding: '0.6rem 1rem', 
-              borderRadius: '20px', 
-              border: '1px solid var(--border-color)', 
-              background: 'var(--bg-tertiary)',
-              color: 'var(--text-primary)',
-              outline: 'none',
-              width: '250px'
-            }} 
-          />
-          <Link href="/auth/login" style={{ fontWeight: '500' }}>Log In</Link>
-          <Link href="/auth/signup" style={{ 
-            padding: '0.6rem 1.2rem', 
-            background: 'var(--text-primary)', 
-            color: 'var(--bg-primary)', 
-            borderRadius: '20px', 
-            fontWeight: '600' 
-          }}>Sign Up</Link>
-        </div>
-      </header>
+
 
       {/* Hero Section */}
       <section style={{ 
