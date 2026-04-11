@@ -10,16 +10,33 @@ export default function SellerDashboard() {
   const [orders, setOrders] = useState<any[]>([]);
 
   useEffect(() => {
-    // In a real app we'd fetch actual data passing sellerId. Mocking for demonstration.
-    setProducts([
-      { id: '1', title: 'Premium Wireless Headphones', price: 299.99, stock: 10, status: 'active' },
-      { id: '3', title: 'Mechanical Keyboard Pro', price: 149.00, stock: 0, status: 'pending' },
-    ]);
+    const fetchData = async () => {
+      if (!user) return;
+      try {
+        const token = await user.getIdToken();
+        const headers = { 'Authorization': `Bearer ${token}` };
 
-    setOrders([
-      { id: 'ORD-001', date: new Date().toLocaleDateString(), status: 'paid', amount: 299.99 },
-    ]);
-  }, []);
+        const [prodRes, orderRes] = await Promise.all([
+          fetch(`/api/products?sellerId=${user.uid}`, { headers }),
+          fetch('/api/orders', { headers })
+        ]);
+
+        if (prodRes.ok) {
+          const prodData = await prodRes.json();
+          setProducts(prodData.products || []);
+        }
+        
+        if (orderRes.ok) {
+          const orderData = await orderRes.json();
+          setOrders(orderData.orders || []);
+        }
+      } catch (err) {
+        console.error('Error fetching seller data', err);
+      }
+    };
+    
+    fetchData();
+  }, [user]);
 
   return (
     <ProtectedRoute allowedRoles={['seller', 'admin']}>
@@ -75,9 +92,9 @@ export default function SellerDashboard() {
               <tbody>
                 {orders.map(o => (
                   <tr key={o.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                    <td style={{ padding: '0.75rem 0', fontWeight: '500' }}>{o.id}</td>
-                    <td>{o.date}</td>
-                    <td>${o.amount.toFixed(2)}</td>
+                    <td style={{ padding: '0.75rem 0', fontWeight: '500' }}>{o.id.substring(0, 8)}...</td>
+                    <td>{new Date(o.createdAt).toLocaleDateString()}</td>
+                    <td>${Number(o.totalAmount || 0).toFixed(2)}</td>
                     <td style={{ textTransform: 'capitalize' }}>
                       <span style={{ padding: '0.25rem 0.5rem', borderRadius: '12px', fontSize: '0.85rem', background: 'rgba(59, 130, 246, 0.1)', color: 'var(--accent-color)' }}>
                         {o.status}

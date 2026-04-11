@@ -12,13 +12,26 @@ export async function GET(req: NextRequest) {
     const sellerId = searchParams.get('sellerId');
     const q = searchParams.get('q'); // Basic search simulation
 
+    const status = searchParams.get('status');
+
     let queryRef: FirebaseFirestore.Query = adminDb.collection('products');
 
-    // Currently Firebase requires composite indices for multiple queries. Keep it simple.
     if (category) queryRef = queryRef.where('categoryId', '==', category);
-    if (sellerId) queryRef = queryRef.where('sellerId', '==', sellerId);
-    // Active products only by default, unless seller asking for own
-    if (!sellerId) queryRef = queryRef.where('status', '==', 'active');
+    
+    if (sellerId) {
+      queryRef = queryRef.where('sellerId', '==', sellerId);
+      if (status) queryRef = queryRef.where('status', '==', status);
+    } else if (status === 'pending') {
+      // Protect pending queue
+      const authRes = await withAuth(req, ['admin']);
+      if (authRes.error) return authRes.error;
+      queryRef = queryRef.where('status', '==', 'pending');
+    } else if (status === 'all') {
+      const authRes = await withAuth(req, ['admin']);
+      if (authRes.error) return authRes.error;
+    } else {
+      queryRef = queryRef.where('status', '==', 'active');
+    }
 
     const snapshot = await queryRef.get();
     let products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -61,7 +74,8 @@ export async function POST(req: NextRequest) {
       categoryId: categoryId || null,
       images: images || [],
       attributes: attributes || {},
-      status: 'active', // For production: 'pending' to wait for admin review
+      status: user.role === 'admin' ? 'active' : 'pending',
+
       createdAt: new Date().toISOString(),
       rating: 0,
       reviewCount: 0

@@ -2,23 +2,41 @@
 
 import React, { useEffect, useState } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function AdminDashboard() {
+  const { user } = useAuth();
   const [users, setUsers] = useState<any[]>([]);
   const [pendingProducts, setPendingProducts] = useState<any[]>([]);
 
   useEffect(() => {
-    // Mocking Data for Admin Portal
-    setUsers([
-      { id: 'u1', email: 'client@example.com', role: 'client', status: 'active' },
-      { id: 'u2', email: 'seller@example.com', role: 'seller', status: 'active' },
-      { id: 'u3', email: 'bad_guy@example.com', role: 'client', status: 'blocked' },
-    ]);
+    const fetchData = async () => {
+      if (!user) return;
+      try {
+        const token = await user.getIdToken();
+        const headers = { 'Authorization': `Bearer ${token}` };
 
-    setPendingProducts([
-      { id: '3', title: 'Mechanical Keyboard Pro', seller: 'seller@example.com', status: 'pending' }
-    ]);
-  }, []);
+        const [usersRes, productsRes] = await Promise.all([
+          fetch('/api/users', { headers }),
+          fetch('/api/products?status=pending', { headers })
+        ]);
+
+        if (usersRes.ok) {
+          const uData = await usersRes.json();
+          setUsers(uData.users || []);
+        }
+
+        if (productsRes.ok) {
+          const pData = await productsRes.json();
+          setPendingProducts(pData.products || []);
+        }
+      } catch (err) {
+        console.error('Error fetching admin data', err);
+      }
+    };
+    
+    fetchData();
+  }, [user]);
 
   return (
     <ProtectedRoute allowedRoles={['admin']}>
@@ -73,7 +91,7 @@ export default function AdminDashboard() {
                 ) : pendingProducts.map(p => (
                   <tr key={p.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                     <td style={{ padding: '0.75rem 0' }}>{p.title}</td>
-                    <td>{p.seller}</td>
+                    <td>{p.sellerId || 'Unknown'}</td>
                     <td style={{ display: 'flex', gap: '0.5rem', padding: '0.5rem 0' }}>
                       <button style={{ padding: '0.4rem 0.8rem', background: '#16a34a', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Approve</button>
                       <button style={{ padding: '0.4rem 0.8rem', background: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Reject</button>

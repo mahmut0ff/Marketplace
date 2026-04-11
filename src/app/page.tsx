@@ -13,21 +13,10 @@ export default function Home() {
         const res = await fetch('/api/products');
         if (!res.ok) throw new Error('API failed');
         const data = await res.json();
-        if (data.products && data.products.length > 0) {
-          setProducts(data.products);
-        } else {
-          throw new Error('Empty');
-        }
+        setProducts(data.products || []);
       } catch (err) {
-        // Fallback Mock Data for UI presentation
-        setProducts([
-          { id: '1', title: 'Premium Wireless Headphones', price: 299.99, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80' },
-          { id: '2', title: 'Ergonomic Desk Chair', price: 199.50, image: 'https://images.unsplash.com/photo-1592078615290-033ee584e267?w=800&q=80' },
-          { id: '3', title: 'Mechanical Keyboard Pro', price: 149.00, image: 'https://images.unsplash.com/photo-1595225476474-87563907a212?w=800&q=80' },
-          { id: '4', title: 'Minimalist Wrist Watch', price: 120.00, image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80' },
-          { id: '5', title: 'Smart Home Speaker', price: 89.99, image: 'https://images.unsplash.com/photo-1589003077984-894e133dabab?w=800&q=80' },
-          { id: '6', title: '4K Ultra Monitor', price: 450.00, image: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=800&q=80' },
-        ]);
+        console.error('Failed to fetch products:', err);
+        setProducts([]);
       } finally {
         setLoading(false);
       }
