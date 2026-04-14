@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
+import Link from 'next/link';
 
 export default function SellerDashboard() {
   const { user } = useAuth();
