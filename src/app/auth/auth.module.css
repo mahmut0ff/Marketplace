@@ -5,34 +5,63 @@
   min-height: 100vh;
   padding: 1rem;
   background: radial-gradient(circle at 50% -20%, var(--bg-tertiary), var(--bg-primary));
+  position: relative;
+  overflow: hidden;
+}
+
+.authContainer::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: -10%;
+  width: 50%;
+  height: 50%;
+  background: radial-gradient(ellipse at center, rgba(79, 70, 229, 0.2) 0%, transparent 70%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.authContainer::after {
+  content: '';
+  position: absolute;
+  bottom: -20%;
+  right: -10%;
+  width: 50%;
+  height: 50%;
+  background: radial-gradient(ellipse at center, rgba(236, 72, 153, 0.15) 0%, transparent 70%);
+  z-index: 0;
+  pointer-events: none;
 }
 
 .authCard {
   background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--glass-border);
   border-radius: 24px;
-  padding: 2.5rem;
+  padding: 3rem;
   width: 100%;
-  max-width: 420px;
-  box-shadow: var(--shadow-lg);
+  max-width: 440px;
+  box-shadow: var(--shadow-lg), inset 0 1px 1px rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   animation: fadeSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  z-index: 1;
 }
 
 .authTitle {
-  font-size: 1.75rem;
-  font-weight: 700;
+  font-size: 2rem;
+  font-weight: 800;
   text-align: center;
   margin-bottom: 0.5rem;
   color: var(--text-primary);
+  letter-spacing: -0.5px;
 }
 
 .authSubtitle {
-  font-size: 0.95rem;
+  font-size: 1rem;
   text-align: center;
   color: var(--text-secondary);
   line-height: 1.5;
@@ -41,56 +70,61 @@
 .authForm {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .inputGroup {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.5rem;
 }
 
 .inputGroup label {
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .inputGroup input,
 .inputGroup select {
-  padding: 0.75rem 1rem;
+  padding: 0.85rem 1rem;
   border-radius: 12px;
   border: 1px solid var(--border-color);
-  background-color: var(--bg-secondary);
+  background-color: rgba(255,255,255,0.02);
   color: var(--text-primary);
   font-size: 1rem;
   transition: all 0.2s ease;
   font-family: inherit;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
 }
 
 .inputGroup input:focus,
 .inputGroup select:focus {
   outline: none;
   border-color: var(--accent-color);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  background-color: var(--bg-tertiary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
 }
 
 .submitBtn {
-  margin-top: 0.5rem;
-  padding: 0.8rem;
+  margin-top: 1rem;
+  padding: 1rem;
   border-radius: 12px;
   border: none;
-  background-color: var(--accent-color);
+  background: var(--accent-gradient);
   color: white;
-  font-weight: 600;
-  font-size: 1rem;
+  font-weight: 700;
+  font-size: 1.05rem;
   cursor: pointer;
-  transition: transform 0.15s ease, background-color 0.2s ease;
+  transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.2s ease;
+  box-shadow: var(--glow-primary);
 }
 
 .submitBtn:hover {
-  background-color: var(--accent-hover);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(79, 70, 229, 0.5);
 }
 
 .submitBtn:active {
@@ -98,34 +132,40 @@
 }
 
 .submitBtn:disabled {
-  background-color: var(--text-muted);
+  background: var(--border-color);
+  color: var(--text-muted);
+  box-shadow: none;
   cursor: not-allowed;
   transform: none;
 }
 
 .errorMessage {
   color: #ef4444;
-  font-size: 0.85rem;
-  padding: 0.5rem;
+  font-size: 0.9rem;
+  padding: 0.75rem;
   border-radius: 8px;
   background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
   text-align: center;
+  font-weight: 500;
 }
 
 .authFooter {
   text-align: center;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: var(--text-secondary);
   margin-top: 1rem;
 }
 
 .authFooter a {
   color: var(--accent-color);
-  font-weight: 500;
+  font-weight: 600;
+  transition: color 0.2s;
 }
 
 .authFooter a:hover {
-  text-decoration: underline;
+  color: var(--accent-hover);
+  text-decoration: none;
 }
 
 @keyframes fadeSlideUp {
@@ -153,9 +193,10 @@
 
 .dividerText {
   padding: 0 1rem;
-  color: var(--text-secondary);
+  color: var(--text-muted);
   font-size: 0.85rem;
-  font-weight: 500;
+  font-weight: 600;
+  text-transform: uppercase;
 }
 
 .googleBtn {
@@ -164,21 +205,22 @@
   justify-content: center;
   gap: 0.75rem;
   width: 100%;
-  padding: 0.8rem;
+  padding: 0.9rem;
   border-radius: 12px;
   border: 1px solid var(--border-color);
-  background-color: var(--bg-tertiary);
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(8px);
   color: var(--text-primary);
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
-  transition: transform 0.15s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .googleBtn:hover {
   background-color: var(--bg-secondary);
   box-shadow: var(--shadow-sm);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
 
 .googleBtn:active {
@@ -186,6 +228,6 @@
 }
 
 .googleBtn svg {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
 }
