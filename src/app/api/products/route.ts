@@ -10,19 +10,21 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const category = searchParams.get('category');
     const sellerId = searchParams.get('sellerId');
-    const q = searchParams.get('q'); // Basic search simulation
-
+    const q = searchParams.get('q');
+    const minPrice = searchParams.get('minPrice');
+    const maxPrice = searchParams.get('maxPrice');
+    const sort = searchParams.get('sort'); // price_asc, price_desc, newest, featured
     const status = searchParams.get('status');
 
     let queryRef: FirebaseFirestore.Query = adminDb.collection('products');
 
+    // Base filters that can be indexed easily
     if (category) queryRef = queryRef.where('categoryId', '==', category);
     
     if (sellerId) {
       queryRef = queryRef.where('sellerId', '==', sellerId);
       if (status) queryRef = queryRef.where('status', '==', status);
     } else if (status === 'pending') {
-      // Protect pending queue
       const authRes = await withAuth(req, ['admin']);
       if (authRes.error) return authRes.error;
       queryRef = queryRef.where('status', '==', 'pending');
@@ -36,10 +38,36 @@ export async function GET(req: NextRequest) {
     const snapshot = await queryRef.get();
     let products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-    // Fuzzy poor-mans search on titles for small-scale (Algolia recommended for prod)
+    // In-memory text search
     if (q) {
       const lowerQ = q.toLowerCase();
-      products = products.filter((p: any) => p.title.toLowerCase().includes(lowerQ));
+      products = products.filter((p: any) => 
+        (p.title && p.title.toLowerCase().includes(lowerQ)) || 
+        (p.description && p.description.toLowerCase().includes(lowerQ))
+      );
+    }
+
+    // In-memory price filter
+    if (minPrice) {
+      const min = Number(minPrice);
+      if (!isNaN(min)) products = products.filter((p: any) => p.price >= min);
+    }
+    
+    if (maxPrice) {
+      const max = Number(maxPrice);
+      if (!isNaN(max)) products = products.filter((p: any) => p.price <= max);
+    }
+
+    // In-memory sort
+    if (sort === 'price_asc') {
+      products.sort((a: any, b: any) => a.price - b.price);
+    } else if (sort === 'price_desc') {
+      products.sort((a: any, b: any) => b.price - a.price);
+    } else if (sort === 'newest') {
+      products.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    } else {
+      // featured / default (newest by default)
+      products.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
 
     return NextResponse.json({ products }, { status: 200 });

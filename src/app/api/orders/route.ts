@@ -21,35 +21,68 @@ export async function POST(req: NextRequest) {
 
     const sellerIds = Array.from(new Set(items.map((i: any) => i.sellerId)));
     
-    let totalAmount = 0;
-    // Real implementation would verify prices again from DB to prevent client-side tampering
-    items.forEach((item: any) => {
-      totalAmount += item.price * item.quantity;
-    });
-
     const docRef = adminDb.collection('orders').doc();
-    const orderData = {
-      id: docRef.id,
-      clientId: user.uid,
-      sellerIds,
-      items,
-      totalAmount,
-      shippingAddress,
-      paymentMethod,
-      status: paymentMethod === 'mock_card' ? 'paid' : 'pending', // Simulating successful mock payment immediately
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    let finalOrderData: any;
 
-    // Use a transaction/batch to reduce stock
-    // Removed for brevity and lack of actual populated DB, but would involve `adminDb.runTransaction()`
-    
-    await docRef.set(orderData);
+    await adminDb.runTransaction(async (transaction) => {
+      const productRefs = items.map((item: any) => adminDb.collection('products').doc(item.id));
+      const productDocs = await transaction.getAll(...productRefs);
+      
+      let totalAmount = 0;
+      const updates = [];
+
+      for (let i = 0; i < productDocs.length; i++) {
+        const pDoc = productDocs[i];
+        const item = items[i];
+        
+        if (!pDoc.exists) {
+          throw new Error(`Product "${item.title || item.id}" not found.`);
+        }
+        
+        const data = pDoc.data()! as Record<string, any>;
+        const price = Number(data.price) || 0;
+        const currentStock = Number(data.stock) || 0;
+        const requestedQuantity = Number(item.quantity) || 1;
+        
+        if (currentStock < requestedQuantity) {
+          throw new Error(`Not enough stock for "${data.title}". Available: ${currentStock}`);
+        }
+        
+        totalAmount += price * requestedQuantity;
+        
+        updates.push({
+          ref: pDoc.ref,
+          newStock: currentStock - requestedQuantity
+        });
+        
+        // Update item price to real DB price
+        item.price = price;
+      }
+      
+      for (const update of updates) {
+        transaction.update(update.ref, { stock: update.newStock });
+      }
+
+      finalOrderData = {
+        id: docRef.id,
+        clientId: user.uid,
+        sellerIds,
+        items,
+        totalAmount,
+        shippingAddress,
+        paymentMethod,
+        status: paymentMethod === 'mock_card' ? 'paid' : 'pending',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      transaction.set(docRef, finalOrderData);
+    });
 
     return NextResponse.json({ 
       message: 'Order created successfully', 
       orderId: docRef.id, 
-      status: orderData.status 
+      status: finalOrderData.status 
     }, { status: 201 });
     
   } catch (error: any) {

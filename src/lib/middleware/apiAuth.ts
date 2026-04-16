@@ -26,18 +26,37 @@ export async function withAuth(
     const { uid, email } = decodedToken;
 
     // Fetch User Role from Firestore Database
-    const userDocRef = adminDb.collection('users').doc(uid);
-    const userDoc = await userDocRef.get();
-
-    if (!userDoc.exists) {
-      return { error: NextResponse.json({ error: 'User profile not found in database' }, { status: 403 }) };
+    let userData: any = null;
+    try {
+      const userDocRef = adminDb.collection('users').doc(uid);
+      const userDoc = await userDocRef.get();
+      if (userDoc.exists) userData = userDoc.data();
+    } catch (dbErr) {
+      // Fallback for Vercel/Netlify environments missing FIREBASE_PRIVATE_KEY
+      console.warn("Falling back to REST API for user fetch due to missing Admin SDK credentials.");
+      const projectId = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+      const restRes = await fetch(`https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/users/${uid}`, {
+        headers: { Authorization: `Bearer ${idToken}` }
+      });
+      if (restRes.ok) {
+        const restData = await restRes.json();
+        if (restData.fields) {
+          userData = {
+            role: restData.fields.role?.stringValue,
+            status: restData.fields.status?.stringValue,
+          };
+        }
+      }
     }
 
-    const userData = userDoc.data();
-    const userRole = userData?.role as AllowedRoles;
+    if (!userData) {
+      return { error: NextResponse.json({ error: 'User profile not found or accessible' }, { status: 403 }) };
+    }
+
+    const userRole = userData.role as AllowedRoles;
 
     // Blocked check
-    if (userData?.status === 'blocked') {
+    if (userData.status === 'blocked') {
       return { error: NextResponse.json({ error: 'Account is blocked' }, { status: 403 }) };
     }
 
