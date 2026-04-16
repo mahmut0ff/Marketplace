@@ -102,7 +102,7 @@ export default function ProductDetail() {
       
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(400px, 1fr) 1fr', gap: '4rem', marginTop: '1rem', alignItems: 'start' }}>
         {/* Left Column - Image */}
-        <div style={{ position: 'relative', position: 'sticky', top: '2rem' }}>
+        <div style={{ position: 'sticky', top: '2rem' }}>
           <div style={{
             position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
             width: '80%', height: '80%', background: 'var(--accent-color)', filter: 'blur(100px)', opacity: 0.2, zIndex: 0, pointerEvents: 'none'
@@ -175,7 +175,7 @@ export default function ProductDetail() {
             <h2 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '2rem' }}>Customer Reviews</h2>
 
             {/* Leave a review form */}
-            {user && user.role === 'client' && (
+            {user && (user as any).role === 'client' && (
               <form onSubmit={handleReviewSubmit} className="glass-panel" style={{ padding: '2rem', borderRadius: '16px', marginBottom: '3rem' }}>
                 <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', fontWeight: '700' }}>Have you purchased this?</h3>
                 {reviewError && <div style={{ color: '#ef4444', marginBottom: '1rem', padding: '0.5rem', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px' }}>{reviewError}</div>}
