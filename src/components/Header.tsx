@@ -1,15 +1,18 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCart } from '@/contexts/CartContext';
 import { auth } from '@/lib/firebase/client';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 
 export default function Header() {
   const { user, profile } = useAuth();
+  const { items } = useCart();
   const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleSignOut = async () => {
     try {
@@ -20,162 +23,250 @@ export default function Header() {
     }
   };
 
-  const dashboardLink = profile?.role === 'admin' ? '/admin/dashboard' 
-    : profile?.role === 'seller' ? '/seller/dashboard' 
-    : '/'; 
+  const dashboardLink = profile?.role === 'admin' ? '/admin/dashboard'
+    : profile?.role === 'seller' ? '/seller/dashboard'
+    : '/';
+
+  const cartCount = items.reduce((sum, i) => sum + i.quantity, 0);
 
   return (
-    <header style={{ 
+    <header style={{
       position: 'sticky',
       top: 0,
-      zIndex: 50,
-      display: 'flex', 
-      justifyContent: 'space-between', 
-      alignItems: 'center', 
-      padding: '1rem 2rem', 
-      borderBottom: '1px solid var(--glass-border)',
-      background: 'var(--glass-bg)',
-      backdropFilter: 'blur(16px)',
-      WebkitBackdropFilter: 'blur(16px)',
-      boxShadow: 'var(--shadow-sm)'
+      zIndex: 100,
+      background: 'var(--bg-secondary)',
+      borderBottom: '1px solid var(--border-color)',
     }}>
-      <Link href="/" style={{ textDecoration: 'none' }}>
-        <h1 style={{ fontSize: '1.75rem', fontWeight: '800', letterSpacing: '-0.5px', margin: 0 }} className="gradient-text">
-          BigShopAI
-        </h1>
-      </Link>
-      
-      <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-        <input 
-          type="text" 
-          placeholder="Search products..." 
-          style={{ 
-            padding: '0.6rem 1.2rem', 
-            borderRadius: '99px', 
-            border: '1px solid var(--border-color)', 
-            background: 'var(--bg-tertiary)',
-            color: 'var(--text-primary)',
-            width: '300px',
-            transition: 'all 0.3s ease',
-            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
-          }} 
-          onFocus={(e) => {
-            e.currentTarget.style.boxShadow = '0 0 0 2px var(--accent-color)';
-            e.currentTarget.style.borderColor = 'transparent';
-          }}
-          onBlur={(e) => {
-            e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0,0,0,0.02)';
-            e.currentTarget.style.borderColor = 'var(--border-color)';
-          }}
-        />
+      {/* Top bar */}
+      <div style={{
+        background: 'var(--accent)',
+        padding: '6px 0',
+        textAlign: 'center',
+        fontSize: '12px',
+        color: 'white',
+        fontWeight: 500,
+        letterSpacing: '0.3px'
+      }}>
+        Бесплатная доставка от $50 · Возврат 14 дней
+      </div>
 
-        {user ? (
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', borderLeft: '1px solid var(--border-color)', paddingLeft: '1.5rem' }}>
-            <span style={{ fontWeight: '600', color: 'var(--text-primary)', fontSize: '0.95rem' }}>
-              Hi, {profile?.displayName || user.email?.split('@')[0]}
-            </span>
-            
-            {profile?.role && profile.role !== 'client' && (
-              <Link href={dashboardLink} style={{ 
-                fontSize: '0.85rem', 
-                padding: '0.5rem 1rem', 
-                borderRadius: '8px', 
-                background: 'var(--accent-color)', 
-                color: 'white',
-                fontWeight: '600',
-                transition: 'background 0.2s, transform 0.1s'
+      {/* Main header */}
+      <div style={{
+        maxWidth: '1400px',
+        margin: '0 auto',
+        display: 'flex',
+        alignItems: 'center',
+        padding: '10px 24px',
+        gap: '24px',
+      }}>
+        {/* Logo */}
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+          <div style={{
+            width: '36px',
+            height: '36px',
+            background: 'var(--accent)',
+            borderRadius: '8px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            fontWeight: 900,
+            fontSize: '18px',
+          }}>M</div>
+          <span style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
+            Market
+          </span>
+        </Link>
+
+        {/* Catalog Button */}
+        <button style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '10px 20px',
+          background: 'var(--accent)',
+          color: 'white',
+          border: 'none',
+          borderRadius: 'var(--radius-md)',
+          fontWeight: 700,
+          fontSize: '14px',
+          cursor: 'pointer',
+          flexShrink: 0,
+        }}>
+          <span style={{ fontSize: '16px' }}>☰</span>
+          Каталог
+        </button>
+
+        {/* Search */}
+        <div style={{
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          background: 'var(--bg-primary)',
+          border: '2px solid var(--border-color)',
+          borderRadius: 'var(--radius-md)',
+          overflow: 'hidden',
+          transition: 'border-color 0.2s',
+        }}
+        onFocus={(e) => {
+          (e.currentTarget as HTMLElement).style.borderColor = 'var(--accent)';
+        }}
+        onBlur={(e) => {
+          (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-color)';
+        }}
+        >
+          <input
+            type="text"
+            placeholder="Найти товары..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            style={{
+              flex: 1,
+              padding: '10px 16px',
+              border: 'none',
+              background: 'transparent',
+              color: 'var(--text-primary)',
+              fontSize: '14px',
+            }}
+          />
+          <button style={{
+            padding: '10px 20px',
+            background: 'var(--accent)',
+            border: 'none',
+            color: 'white',
+            cursor: 'pointer',
+            fontSize: '16px',
+            fontWeight: 600,
+          }}>🔍</button>
+        </div>
+
+        {/* Right Actions */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+          {user ? (
+            <>
+              {/* Dashboard Link */}
+              {profile?.role && profile.role !== 'client' && (
+                <Link href={dashboardLink} style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--accent)',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-light)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  <span style={{ fontSize: '20px', marginBottom: '2px' }}>⚙️</span>
+                  {profile.role === 'admin' ? 'Админ' : 'Продавец'}
+                </Link>
+              )}
+
+              {/* Cart */}
+              <Link href="/checkout" style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                padding: '6px 12px',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--text-secondary)',
+                fontSize: '11px',
+                fontWeight: 600,
+                position: 'relative',
+                transition: 'background 0.15s',
               }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'var(--accent-hover)';
-                e.currentTarget.style.transform = 'translateY(-1px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'var(--accent-color)';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
+              onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-light)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
-                {profile.role === 'admin' ? 'Admin Panel' : 'Seller Portal'}
+                <span style={{ fontSize: '20px', marginBottom: '2px' }}>🛒</span>
+                Корзина
+                {cartCount > 0 && (
+                  <span style={{
+                    position: 'absolute',
+                    top: '2px',
+                    right: '4px',
+                    background: 'var(--accent)',
+                    color: 'white',
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    width: '18px',
+                    height: '18px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>{cartCount}</span>
+                )}
               </Link>
-            )}
 
-            <Link href="/settings" style={{
-              fontSize: '0.85rem',
-              padding: '0.5rem 1rem',
-              borderRadius: '8px',
-              border: '1px solid var(--border-color)',
-              color: 'var(--text-primary)',
-              fontWeight: '600',
-              textDecoration: 'none',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)';
-              e.currentTarget.style.borderColor = 'var(--text-muted)';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.borderColor = 'var(--border-color)';
-            }}
-            >
-              Settings
-            </Link>
+              {/* Profile */}
+              <Link href="/settings" style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                padding: '6px 12px',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--text-secondary)',
+                fontSize: '11px',
+                fontWeight: 600,
+                transition: 'background 0.15s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-light)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                <span style={{ fontSize: '20px', marginBottom: '2px' }}>👤</span>
+                {profile?.displayName?.split(' ')[0] || 'Профиль'}
+              </Link>
 
-            <button 
-              onClick={handleSignOut}
-              style={{
-                padding: '0.5rem 1rem',
-                border: 'none',
-                borderRadius: '8px',
-                background: 'rgba(239, 68, 68, 0.1)',
-                color: '#ef4444',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
+              {/* Sign out */}
+              <button
+                onClick={handleSignOut}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--text-muted)',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.06)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                <span style={{ fontSize: '20px', marginBottom: '2px' }}>🚪</span>
+                Выйти
+              </button>
+            </>
+          ) : (
+            <>
+              <Link href="/auth/login" style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                padding: '6px 12px',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--text-secondary)',
+                fontSize: '11px',
+                fontWeight: 600,
+                transition: 'background 0.15s',
               }}
-              onMouseEnter={e => {
-                e.currentTarget.style.backgroundColor = '#ef4444';
-                e.currentTarget.style.color = 'white';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
-                e.currentTarget.style.color = '#ef4444';
-              }}
-            >
-              Sign Out
-            </button>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', borderLeft: '1px solid var(--border-color)', paddingLeft: '1.5rem' }}>
-            <Link href="/auth/login" style={{ 
-              fontWeight: '600', 
-              color: 'var(--text-primary)',
-              padding: '0.5rem 1rem',
-              borderRadius: '8px',
-              transition: 'background 0.2s',
-            }}
-            onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)'}
-            onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
-            >Log In</Link>
-            <Link href="/auth/signup" style={{ 
-              padding: '0.5rem 1.2rem', 
-              background: 'var(--accent-color)', 
-              color: 'white', 
-              borderRadius: '8px', 
-              fontWeight: '600',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-              boxShadow: 'var(--glow-primary)'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 5px 15px rgba(79, 70, 229, 0.4)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = 'var(--glow-primary)';
-            }}
-            >Sign Up</Link>
-          </div>
-        )}
+              onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-light)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                <span style={{ fontSize: '20px', marginBottom: '2px' }}>👤</span>
+                Войти
+              </Link>
+            </>
+          )}
+        </div>
       </div>
     </header>
   );

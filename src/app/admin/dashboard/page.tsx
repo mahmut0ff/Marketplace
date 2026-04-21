@@ -14,83 +14,86 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // In a real app, you would fetch these aggregated stats from an API endpoint
-    // e.g. /api/admin/dashboard-stats
-    // For now we will mock them for the UI structure
     setLoading(true);
     setTimeout(() => {
-      setStats({
-        totalUsers: 1432,
-        activeVendors: 89,
-        pendingAds: 12,
-        pendingProducts: 24,
-      });
+      setStats({ totalUsers: 1432, activeVendors: 89, pendingAds: 12, pendingProducts: 24 });
       setLoading(false);
     }, 500);
   }, [user]);
 
-  const KpiCard = ({ title, value, color }: { title: string, value: string | number, color: string }) => (
-    <div className="glass-panel" style={{ 
-      padding: '1.5rem', 
-      borderRadius: '16px', 
-      display: 'flex', 
-      flexDirection: 'column',
-      gap: '0.5rem',
-      boxShadow: 'var(--shadow-md)'
-    }}>
-      <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 600 }}>{title}</div>
-      <div style={{ fontSize: '2rem', fontWeight: 800, color: color }}>{value}</div>
-    </div>
-  );
+  const kpis = [
+    { label: 'Пользователи', value: stats.totalUsers, color: 'var(--text-primary)', icon: '👥' },
+    { label: 'Продавцы', value: stats.activeVendors, color: 'var(--accent)', icon: '🏪' },
+    { label: 'Товары на модерации', value: stats.pendingProducts, color: 'var(--danger)', icon: '📦' },
+    { label: 'Реклама на модерации', value: stats.pendingAds, color: 'var(--warning)', icon: '📢' },
+  ];
 
   return (
-    <div style={{ maxWidth: '1400px', margin: '0 auto', animation: 'fade-in-up 0.5s ease-out' }}>
-      <div style={{ marginBottom: '2.5rem' }}>
-        <h1 style={{ fontSize: '2.25rem', fontWeight: 800, marginBottom: '0.5rem' }}>Dashboard</h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>Welcome back. Here's what's happening today.</p>
-      </div>
+    <div style={{ maxWidth: '1200px' }}>
+      <h1 style={{ fontSize: '22px', fontWeight: 700, marginBottom: '4px' }}>Дашборд</h1>
+      <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '24px' }}>Обзор ключевых метрик платформы</p>
 
+      {/* KPI Cards */}
       {loading ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
-            {[1,2,3,4].map(i => <div key={i} className="glass-panel" style={{ height: '120px', borderRadius: '16px', animation: 'pulse-glow 2s infinite' }}></div>)}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '24px' }}>
+          {[1,2,3,4].map(i => <div key={i} className="skeleton" style={{ height: '100px', borderRadius: 'var(--radius-md)' }} />)}
         </div>
       ) : (
-        <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
-            <KpiCard title="Total Users" value={stats.totalUsers} color="var(--text-primary)" />
-            <KpiCard title="Active Vendors" value={stats.activeVendors} color="var(--accent-color)" />
-            <KpiCard title="Pending Ads" value={stats.pendingAds} color="#f59e0b" />
-            <KpiCard title="Pending Products" value={stats.pendingProducts} color="#ef4444" />
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-            <div className="glass-panel" style={{ padding: '2rem', borderRadius: '16px', minHeight: '300px' }}>
-              <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>Recent Activity</h3>
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <li style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981' }}></div>
-                  <div><span style={{ fontWeight: 600 }}>New Vendor</span> registered (Acme Corp)</div>
-                  <div style={{ marginLeft: 'auto', color: 'var(--text-muted)', fontSize: '0.8rem' }}>2 mins ago</div>
-                </li>
-                <li style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }}></div>
-                  <div><span style={{ fontWeight: 600 }}>Product rejected</span> by Admin</div>
-                  <div style={{ marginLeft: 'auto', color: 'var(--text-muted)', fontSize: '0.8rem' }}>1 hour ago</div>
-                </li>
-                <li style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-color)' }}></div>
-                  <div><span style={{ fontWeight: 600 }}>Large Order</span> completed ($1,240)</div>
-                  <div style={{ marginLeft: 'auto', color: 'var(--text-muted)', fontSize: '0.8rem' }}>3 hours ago</div>
-                </li>
-              </ul>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '24px' }}>
+          {kpis.map(kpi => (
+            <div key={kpi.label} className="card" style={{
+              padding: '20px',
+              borderRadius: 'var(--radius-md)',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '14px',
+            }}>
+              <span style={{ fontSize: '28px' }}>{kpi.icon}</span>
+              <div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.3px' }}>{kpi.label}</div>
+                <div style={{ fontSize: '28px', fontWeight: 800, color: kpi.color, lineHeight: 1 }}>{kpi.value}</div>
+              </div>
             </div>
-            
-            <div className="glass-panel" style={{ padding: '2rem', borderRadius: '16px', minHeight: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-               <p style={{ color: 'var(--text-muted)' }}>Revenue Chart Placeholder</p>
-            </div>
-          </div>
-        </>
+          ))}
+        </div>
       )}
+
+      {/* Recent Activity */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div className="card" style={{ padding: '20px', borderRadius: 'var(--radius-md)' }}>
+          <h3 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid var(--border-color)' }}>
+            Последние действия
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {[
+              { text: 'Новый продавец зарегистрировался', badge: 'Новый', color: 'var(--success)', time: '2 мин' },
+              { text: 'Товар отклонён модератором', badge: 'Отклонен', color: 'var(--danger)', time: '1 час' },
+              { text: 'Крупный заказ завершён ($1,240)', badge: 'Заказ', color: 'var(--accent)', time: '3 часа' },
+            ].map((item, idx) => (
+              <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px' }}>
+                <span style={{
+                  width: '6px', height: '6px', borderRadius: '50%', background: item.color, flexShrink: 0,
+                }} />
+                <span style={{ flex: 1, color: 'var(--text-secondary)' }}>{item.text}</span>
+                <span style={{ fontSize: '12px', color: 'var(--text-muted)', flexShrink: 0 }}>{item.time}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="card" style={{
+          padding: '20px',
+          borderRadius: 'var(--radius-md)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '200px',
+        }}>
+          <span style={{ fontSize: '32px', marginBottom: '8px', opacity: 0.5 }}>📈</span>
+          <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>График выручки (скоро)</p>
+        </div>
+      </div>
     </div>
   );
 }

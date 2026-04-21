@@ -13,18 +13,14 @@ export default function SettingsPage() {
 
   const handleRoleChange = async (newRole: UserRole) => {
     if (!user || user.uid !== profile?.uid || profile?.role === newRole) return;
-    
     setUpdating(true);
     setError(null);
     try {
       const userRef = doc(db, 'users', user.uid);
-      await updateDoc(userRef, {
-        role: newRole
-      });
-      // Context will automatically update via onSnapshot
+      await updateDoc(userRef, { role: newRole });
     } catch (err: any) {
       console.error('Error updating role:', err);
-      setError('Failed to update role. Please try again.');
+      setError('Не удалось изменить роль. Попробуйте снова.');
     } finally {
       setUpdating(false);
     }
@@ -32,115 +28,106 @@ export default function SettingsPage() {
 
   const activeRole = profile?.role || 'client';
 
+  const roles = [
+    { key: 'client' as const, name: 'Покупатель', icon: '🛒', desc: 'Просмотр каталога и оформление заказов' },
+    { key: 'seller' as const, name: 'Продавец', icon: '🏪', desc: 'Управление товарами и заказами' },
+    { key: 'admin' as const, name: 'Администратор', icon: '⚙️', desc: 'Полный контроль над платформой' },
+  ];
+
   return (
     <ProtectedRoute>
-      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '3rem 2rem' }} className="animate-fade-in-up">
-        
-        <div className="glass-panel" style={{ 
-          borderRadius: '24px', 
-          padding: '3rem',
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
-          {/* Decorative Background */}
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '4px',
-            background: 'var(--accent-gradient)'
-          }} />
+      <div style={{ maxWidth: '600px', margin: '0 auto', padding: '32px 24px' }}>
+        <h1 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '8px' }}>Настройки</h1>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '32px' }}>
+          Управление аккаунтом и выбор роли
+        </p>
 
-          <h1 style={{ marginBottom: '0.5rem', fontSize: '2rem', fontWeight: '800', letterSpacing: '-0.5px' }}>Account <span className="gradient-text">Settings</span></h1>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '3rem', fontSize: '1.1rem' }}>
-            Manage your seamless experience.
-          </p>
-
-          <div style={{ padding: '2rem', background: 'var(--bg-primary)', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem' }}>Active Workspace Role</h2>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', fontSize: '0.95rem' }}>
-              Your current role defines the portal you access and the features available to you.
-            </p>
-
-            {error && (
-              <div style={{ 
-                padding: '1rem', 
-                backgroundColor: 'rgba(239, 68, 68, 0.1)', 
-                color: '#ef4444', 
-                borderRadius: '8px',
-                marginBottom: '1.5rem',
-                border: '1px solid rgba(239, 68, 68, 0.2)'
-              }}>
-                {error}
-              </div>
-            )}
-
-            <div style={{ 
-              display: 'flex', 
-              background: 'var(--bg-tertiary)', 
-              padding: '0.5rem', 
-              borderRadius: '16px',
-              gap: '0.5rem',
-              width: '100%',
-              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.05)'
-            }}>
-              {(['client', 'seller', 'admin'] as const).map((role) => (
-                <button
-                  key={role}
-                  onClick={() => handleRoleChange(role)}
-                  disabled={updating}
-                  style={{
-                    flex: 1,
-                    padding: '0.875rem',
-                    borderRadius: '12px',
-                    border: 'none',
-                    fontWeight: activeRole === role ? '700' : '500',
-                    cursor: updating ? 'not-allowed' : 'pointer',
-                    background: activeRole === role ? 'var(--bg-secondary)' : 'transparent',
-                    color: activeRole === role ? 'var(--text-primary)' : 'var(--text-muted)',
-                    boxShadow: activeRole === role ? 'var(--shadow-md)' : 'none',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    opacity: updating && activeRole !== role ? 0.5 : 1,
-                    transform: activeRole === role ? 'scale(1.02)' : 'scale(1)'
-                  }}
-                  onMouseEnter={e => {
-                    if (activeRole !== role && !updating) e.currentTarget.style.color = 'var(--text-primary)';
-                  }}
-                  onMouseLeave={e => {
-                    if (activeRole !== role && !updating) e.currentTarget.style.color = 'var(--text-muted)';
-                  }}
-                >
-                  {role === 'client' ? 'Покупатель' : role === 'seller' ? 'Продавец' : 'Администратор'}
-                </button>
-              ))}
+        {/* Account Info */}
+        <div className="card" style={{ padding: '20px', borderRadius: 'var(--radius-md)', marginBottom: '16px' }}>
+          <h2 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '16px' }}>Аккаунт</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '14px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: 'var(--text-muted)' }}>Email</span>
+              <span style={{ fontWeight: 600 }}>{user?.email || '—'}</span>
             </div>
-            
-            <div style={{ 
-              marginTop: '2rem', 
-              padding: '1rem',
-              borderRadius: '12px',
-              background: 'var(--bg-tertiary)',
-              border: '1px dashed var(--border-color)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}>
-              <span style={{ fontSize: '0.95rem', color: 'var(--text-secondary)' }}>Current Hub</span>
-              <strong style={{
-                padding: '0.25rem 0.75rem',
-                background: 'var(--accent-color)',
-                color: 'white',
-                borderRadius: '99px',
-                fontSize: '0.85rem'
-              }}>
-                {
-                  activeRole === 'admin' ? 'Admin Panel' : 
-                  activeRole === 'seller' ? 'Seller Portal' : 
-                  'Marketplace'
-                }
-              </strong>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: 'var(--text-muted)' }}>Имя</span>
+              <span style={{ fontWeight: 600 }}>{profile?.displayName || '—'}</span>
             </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: 'var(--text-muted)' }}>Статус</span>
+              <span className="badge badge-success">{profile?.status || 'active'}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Role Selector */}
+        <div className="card" style={{ padding: '20px', borderRadius: 'var(--radius-md)' }}>
+          <h2 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '16px' }}>Выберите роль</h2>
+
+          {error && (
+            <div style={{
+              padding: '10px 14px',
+              background: 'rgba(239,68,68,0.06)',
+              color: 'var(--danger)',
+              borderRadius: 'var(--radius-sm)',
+              marginBottom: '16px',
+              fontSize: '13px',
+            }}>
+              {error}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {roles.map((role) => (
+              <button
+                key={role.key}
+                onClick={() => handleRoleChange(role.key)}
+                disabled={updating}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '14px',
+                  padding: '14px 16px',
+                  borderRadius: 'var(--radius-sm)',
+                  border: activeRole === role.key ? '2px solid var(--accent)' : '1px solid var(--border-color)',
+                  background: activeRole === role.key ? 'var(--accent-light)' : 'var(--bg-secondary)',
+                  cursor: updating ? 'not-allowed' : 'pointer',
+                  textAlign: 'left',
+                  transition: 'all 0.15s',
+                  opacity: updating && activeRole !== role.key ? 0.5 : 1,
+                }}
+              >
+                <span style={{ fontSize: '24px' }}>{role.icon}</span>
+                <div>
+                  <div style={{
+                    fontWeight: 600,
+                    fontSize: '14px',
+                    color: activeRole === role.key ? 'var(--accent)' : 'var(--text-primary)',
+                  }}>
+                    {role.name}
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    {role.desc}
+                  </div>
+                </div>
+                {activeRole === role.key && (
+                  <span style={{
+                    marginLeft: 'auto',
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '50%',
+                    background: 'var(--accent)',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                  }}>✓</span>
+                )}
+              </button>
+            ))}
           </div>
         </div>
       </div>

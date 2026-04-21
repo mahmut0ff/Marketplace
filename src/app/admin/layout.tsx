@@ -13,66 +13,88 @@ export default function AdminLayout({
   const pathname = usePathname();
 
   const navLinks = [
-    { name: 'Dashboard', path: '/admin/dashboard', icon: '📊' },
-    { name: 'Users', path: '/admin/users', icon: '👥' },
-    { name: 'Products', path: '/admin/products', icon: '🛍️' },
-    { name: 'Orders', path: '/admin/orders', icon: '📦' },
-    { name: 'Ads', path: '/admin/ads', icon: '📢' },
+    { name: 'Дашборд', path: '/admin/dashboard', icon: '📊' },
+    { name: 'Пользователи', path: '/admin/users', icon: '👥' },
+    { name: 'Товары', path: '/admin/products', icon: '📦' },
+    { name: 'Заказы', path: '/admin/orders', icon: '🧾' },
+    { name: 'Реклама', path: '/admin/ads', icon: '📢' },
   ];
 
   return (
     <ProtectedRoute allowedRoles={['admin']}>
-      <div style={{ display: 'flex', minHeight: 'calc(100vh - 64px)', background: 'var(--bg-primary)' }}>
+      <div style={{ display: 'flex', minHeight: 'calc(100vh - 100px)' }}>
         {/* Sidebar */}
-        <aside style={{ 
-          width: '260px', 
-          background: 'var(--bg-secondary)', 
+        <aside style={{
+          width: '220px',
+          background: 'var(--bg-secondary)',
           borderRight: '1px solid var(--border-color)',
-          padding: '2rem 1rem',
+          padding: '20px 12px',
           display: 'flex',
           flexDirection: 'column',
+          flexShrink: 0,
           position: 'sticky',
-          top: '64px',
-          height: 'calc(100vh - 64px)'
+          top: '100px',
+          height: 'calc(100vh - 100px)',
         }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '2rem', paddingLeft: '1rem' }}>
-            Admin Panel
-          </h2>
-          
-          <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <div style={{
+            fontSize: '13px',
+            fontWeight: 700,
+            color: 'var(--text-muted)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+            padding: '0 12px',
+            marginBottom: '16px',
+          }}>
+            Админ панель
+          </div>
+
+          <nav style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
             {navLinks.map((link) => {
               const isActive = pathname.startsWith(link.path);
               return (
-                <Link 
-                  key={link.path} 
+                <Link
+                  key={link.path}
                   href={link.path}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '1rem',
-                    padding: '0.75rem 1rem',
-                    borderRadius: '8px',
-                    color: isActive ? 'var(--accent-color)' : 'var(--text-secondary)',
-                    background: isActive ? 'rgba(79, 70, 229, 0.1)' : 'transparent',
-                    fontWeight: isActive ? 600 : 500,
-                    transition: 'all 0.2s ease',
-                    textDecoration: 'none'
+                    gap: '10px',
+                    padding: '10px 12px',
+                    borderRadius: 'var(--radius-sm)',
+                    color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
+                    background: isActive ? 'var(--accent-light)' : 'transparent',
+                    fontWeight: isActive ? 700 : 500,
+                    fontSize: '14px',
+                    transition: 'all 0.15s',
+                    textDecoration: 'none',
+                  }}
+                  onMouseEnter={e => {
+                    if (!isActive) {
+                      e.currentTarget.style.background = 'var(--bg-primary)';
+                      e.currentTarget.style.color = 'var(--text-primary)';
+                    }
+                  }}
+                  onMouseLeave={e => {
+                    if (!isActive) {
+                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.color = 'var(--text-secondary)';
+                    }
                   }}
                 >
-                  <span>{link.icon}</span>
+                  <span style={{ fontSize: '16px' }}>{link.icon}</span>
                   {link.name}
                 </Link>
               );
             })}
           </nav>
 
-          <div style={{ marginTop: 'auto', paddingLeft: '1rem' }}>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Marketplace Engine v1.0</div>
+          <div style={{ marginTop: 'auto', padding: '12px', fontSize: '11px', color: 'var(--text-muted)' }}>
+            Market Admin v1.0
           </div>
         </aside>
 
-        {/* Main Content Area */}
-        <main style={{ flex: 1, padding: '2rem', overflowY: 'auto' }}>
+        {/* Main Content */}
+        <main style={{ flex: 1, padding: '24px', background: 'var(--bg-primary)', overflowY: 'auto' }}>
           {children}
         </main>
       </div>
