@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function AdminAdsPage() {
@@ -55,9 +54,8 @@ export default function AdminAdsPage() {
   };
 
   return (
-    <ProtectedRoute allowedRoles={['admin']}>
-      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '3rem 2rem', color: '#111827' }}>
-        <div style={{ marginBottom: '2rem' }}>
+    <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '1rem', color: 'var(--text-primary)' }}>
+      <div style={{ marginBottom: '2rem' }}>
           <h1 style={{ fontSize: '2rem', fontWeight: '700', margin: '0 0 0.5rem 0' }}>Ad Moderation</h1>
           <p style={{ color: '#4b5563', margin: 0, fontSize: '1rem' }}>Review and approve seller promotional banners.</p>
         </div>
@@ -118,6 +116,5 @@ export default function AdminAdsPage() {
           </div>
         )}
       </div>
-    </ProtectedRoute>
   );
 }

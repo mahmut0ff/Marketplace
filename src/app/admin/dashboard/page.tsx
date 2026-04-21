@@ -1,109 +1,96 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
-  const [users, setUsers] = useState<any[]>([]);
-  const [pendingProducts, setPendingProducts] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    activeVendors: 0,
+    pendingAds: 0,
+    pendingProducts: 0,
+  });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!user) return;
-      try {
-        const token = await user.getIdToken();
-        const headers = { 'Authorization': `Bearer ${token}` };
-
-        const [usersRes, productsRes] = await Promise.all([
-          fetch('/api/users', { headers }),
-          fetch('/api/products?status=pending', { headers })
-        ]);
-
-        if (usersRes.ok) {
-          const uData = await usersRes.json();
-          setUsers(uData.users || []);
-        }
-
-        if (productsRes.ok) {
-          const pData = await productsRes.json();
-          setPendingProducts(pData.products || []);
-        }
-      } catch (err) {
-        console.error('Error fetching admin data', err);
-      }
-    };
-    
-    fetchData();
+    // In a real app, you would fetch these aggregated stats from an API endpoint
+    // e.g. /api/admin/dashboard-stats
+    // For now we will mock them for the UI structure
+    setLoading(true);
+    setTimeout(() => {
+      setStats({
+        totalUsers: 1432,
+        activeVendors: 89,
+        pendingAds: 12,
+        pendingProducts: 24,
+      });
+      setLoading(false);
+    }, 500);
   }, [user]);
 
+  const KpiCard = ({ title, value, color }: { title: string, value: string | number, color: string }) => (
+    <div className="glass-panel" style={{ 
+      padding: '1.5rem', 
+      borderRadius: '16px', 
+      display: 'flex', 
+      flexDirection: 'column',
+      gap: '0.5rem',
+      boxShadow: 'var(--shadow-md)'
+    }}>
+      <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 600 }}>{title}</div>
+      <div style={{ fontSize: '2rem', fontWeight: 800, color: color }}>{value}</div>
+    </div>
+  );
+
   return (
-    <ProtectedRoute allowedRoles={['admin']}>
-      <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-        <h1 style={{ fontSize: '2.5rem', marginBottom: '2rem', color: '#ef4444' }}>Admin Control Panel</h1>
-        
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '2rem' }}>
-          
-          {/* User Management */}
-          <div style={{ background: 'var(--bg-secondary)', padding: '2rem', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
-            <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>User Management</h2>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-              <thead>
-                <tr style={{ borderBottom: '2px solid var(--border-color)' }}>
-                  <th style={{ padding: '0.75rem 0' }}>Email</th>
-                  <th>Role</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map(u => (
-                  <tr key={u.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                    <td style={{ padding: '0.75rem 0' }}>{u.email}</td>
-                    <td style={{ textTransform: 'capitalize' }}>{u.role}</td>
-                    <td style={{ color: u.status === 'blocked' ? '#ef4444' : '#16a34a' }}>{u.status}</td>
-                    <td>
-                      <button style={{ padding: '0.4rem 0.8rem', background: 'transparent', border: '1px solid #ef4444', color: '#ef4444', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>
-                        {u.status === 'blocked' ? 'Unblock' : 'Block'}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Content Moderation */}
-          <div style={{ background: 'var(--bg-secondary)', padding: '2rem', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
-            <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Content Moderation</h2>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-              <thead>
-                <tr style={{ borderBottom: '2px solid var(--border-color)' }}>
-                  <th style={{ padding: '0.75rem 0' }}>Product</th>
-                  <th>Seller</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pendingProducts.length === 0 ? (
-                  <tr><td colSpan={3} style={{ padding: '1rem 0' }}>No pending products.</td></tr>
-                ) : pendingProducts.map(p => (
-                  <tr key={p.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                    <td style={{ padding: '0.75rem 0' }}>{p.title}</td>
-                    <td>{p.sellerId || 'Unknown'}</td>
-                    <td style={{ display: 'flex', gap: '0.5rem', padding: '0.5rem 0' }}>
-                      <button style={{ padding: '0.4rem 0.8rem', background: '#16a34a', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Approve</button>
-                      <button style={{ padding: '0.4rem 0.8rem', background: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Reject</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-        </div>
+    <div style={{ maxWidth: '1400px', margin: '0 auto', animation: 'fade-in-up 0.5s ease-out' }}>
+      <div style={{ marginBottom: '2.5rem' }}>
+        <h1 style={{ fontSize: '2.25rem', fontWeight: 800, marginBottom: '0.5rem' }}>Dashboard</h1>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>Welcome back. Here's what's happening today.</p>
       </div>
-    </ProtectedRoute>
+
+      {loading ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
+            {[1,2,3,4].map(i => <div key={i} className="glass-panel" style={{ height: '120px', borderRadius: '16px', animation: 'pulse-glow 2s infinite' }}></div>)}
+        </div>
+      ) : (
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
+            <KpiCard title="Total Users" value={stats.totalUsers} color="var(--text-primary)" />
+            <KpiCard title="Active Vendors" value={stats.activeVendors} color="var(--accent-color)" />
+            <KpiCard title="Pending Ads" value={stats.pendingAds} color="#f59e0b" />
+            <KpiCard title="Pending Products" value={stats.pendingProducts} color="#ef4444" />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+            <div className="glass-panel" style={{ padding: '2rem', borderRadius: '16px', minHeight: '300px' }}>
+              <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>Recent Activity</h3>
+              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <li style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981' }}></div>
+                  <div><span style={{ fontWeight: 600 }}>New Vendor</span> registered (Acme Corp)</div>
+                  <div style={{ marginLeft: 'auto', color: 'var(--text-muted)', fontSize: '0.8rem' }}>2 mins ago</div>
+                </li>
+                <li style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }}></div>
+                  <div><span style={{ fontWeight: 600 }}>Product rejected</span> by Admin</div>
+                  <div style={{ marginLeft: 'auto', color: 'var(--text-muted)', fontSize: '0.8rem' }}>1 hour ago</div>
+                </li>
+                <li style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-color)' }}></div>
+                  <div><span style={{ fontWeight: 600 }}>Large Order</span> completed ($1,240)</div>
+                  <div style={{ marginLeft: 'auto', color: 'var(--text-muted)', fontSize: '0.8rem' }}>3 hours ago</div>
+                </li>
+              </ul>
+            </div>
+            
+            <div className="glass-panel" style={{ padding: '2rem', borderRadius: '16px', minHeight: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+               <p style={{ color: 'var(--text-muted)' }}>Revenue Chart Placeholder</p>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
   );
 }
